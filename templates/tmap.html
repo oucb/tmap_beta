@@ -1,0 +1,126 @@
+
+<html>
+    <head>
+        <meta charset="utf-8" name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no'/>
+        <title></title>
+        <script src='https://api.mapbox.com/mapbox-gl-js/v0.36.0/mapbox-gl.js'></script>
+        <link href='https://api.mapbox.com/mapbox-gl-js/v0.36.0/mapbox-gl.css' rel='stylesheet' />
+        <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+
+        <style>
+            body { margin:0; padding:0; }
+            #map {
+                position: absolute; top:0; bottom:0; width: 100%;}
+
+            .marker {
+                border: none;
+                cursor: pointer;
+                height: 32px;
+                width: 32px;
+                background-image: url(static/marker.png);
+                background-color: rgba(0, 0, 0, 0);
+                transform: translate(28px, 56px, 0);
+            }
+
+            .overlay {
+                position: absolute;
+                top: 10px;
+                left: 10px;
+                display: block;
+            }
+
+            .overlay button {
+                font: 600 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+                background-color: #3386c0;
+                color: #fff;
+                display: block;
+                margin: 3px 0 0 0;
+                padding: 3px 20px;
+                border: none;
+                cursor: pointer;
+                border-radius: 3px;
+            }
+
+            .overlay button:hover {
+                background-color: #4ea0da;
+            }
+        </style>
+
+    </head>
+
+    <body>
+        <div id='map'></div>
+        <div class="overlay"></div>
+        <script>
+            mapboxgl.accessToken = '{{ACCESS_KEY}}';
+            var map = new mapboxgl.Map({
+                container: 'map',
+                style: 'mapbox://styles/mapbox/outdoors-v10',
+                zoom: 4.5,
+                center: [114.408, 32.503]
+            });
+
+            route = {{route_data|safe}}
+            map.on('load', function () {
+                map.addSource("route", {
+                    "type": "geojson",
+                    "data": route});
+
+                map.addLayer({
+                    "id": "route",
+                    "type": "line",
+                    "source": "route",
+                    "layout": {
+                        "line-join": "round",
+                        "line-cap": "round"
+                    },
+                    "paint": {
+                        "line-color": "#007cbf",
+                        "line-width": 2
+                    }
+                });
+
+                var stop_locations = {{ stop_locations|safe }}
+
+                stop_locations.forEach(function(marker) {
+                    var el = document.createElement('div');
+                    el.className = 'marker';
+                    el.style.left = '-15px';
+                    el.style.top = '-32px';
+
+                    el.addEventListener('click', function () {
+                    });
+
+                    var popup = new mapboxgl.Popup({offset: 25})
+                        .setText(marker.properties.msg);
+
+                    new mapboxgl.Marker(el)
+                        .setLngLat(marker.geometry.coordinates)
+                        .setPopup(popup)
+                        .addTo(map);
+
+                    var button = document.createElement('button');
+                    button.className = 'location_btn';
+                    button.value = marker.properties.locations_index - 1;
+                    button.innerHTML = marker.properties.locations_index + '：' + marker.properties.title;
+                    $(".overlay").append(button)
+
+                });
+
+                $(".location_btn").click(function() {
+                    var btn = Number($(this).val());
+                    map.setZoom(15);
+                    map.flyTo({center: stop_locations[btn].geometry.coordinates});
+                });
+
+            });
+
+            // add zoom and rotation controls to the map
+            map.addControl(new mapboxgl.NavigationControl());
+
+
+        </script>
+
+    </body>
+
+</html>

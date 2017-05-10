@@ -1,0 +1,74 @@
+
+<html>
+    <head>
+        <meta charset="utf-8" name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no'/>
+        <title></title>
+        <script src='https://api.mapbox.com/mapbox-gl-js/v0.36.0/mapbox-gl.js'></script>
+        <link href='https://api.mapbox.com/mapbox-gl-js/v0.36.0/mapbox-gl.css' rel='stylesheet' />
+        <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+
+        <style>
+            .markder {
+                border: none;
+                cursor: pointer;
+                height: 32px;
+                width: 32px;
+                background-image: url(static/marker.png);
+                background-color: rgba(0, 0, 0, 0);
+                transform: translate(28px, 56px, 0);
+            }
+        </style>
+
+    </head>
+
+    <body>
+        <div id='map' style='width: 100%; height: 1200px;'></div>
+        <script>
+            mapboxgl.accessToken = '{{ACCESS_KEY}}';
+            var map = new mapboxgl.Map({
+                container: 'map',
+                style: 'mapbox://styles/mapbox/light-v9',
+                zoom: 4.5,
+                center: [115.589, 26.330]
+            });
+
+            route = {{route_data|safe}}
+            map.on('load', function () {
+                map.addSource("route", {
+                    "type": "geojson",
+                    "data": route});
+
+                map.addLayer({
+                    "id": "route",
+                    "type": "line",
+                    "source": "route",
+                    "layout": {
+                        "line-join": "round",
+                        "line-cap": "round"
+                    },
+                    "paint": {
+                        "line-color": "#007cbf",
+                        "line-width": 2
+                    }
+                });
+
+                var stop_locations = {{ stop_locations|safe }}
+                stop_locations.forEach(function(marker, index) {
+                    var el = document.createElement('div');
+                    el.className = 'marker';
+                    el.style.left = '-15px';
+                    el.style.top = '-32px';
+
+                    new mapboxgl.Marker(el)
+                        .setLngLat(marker.geometry.coordinates)
+                        .addTo(map);
+
+                });
+
+            });
+
+        </script>
+
+    </body>
+
+</html>
